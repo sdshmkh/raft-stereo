@@ -1,0 +1,6 @@
+*.pyc
+*.txt
+
+models
+datasets
+demo_output
