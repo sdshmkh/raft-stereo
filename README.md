@@ -1,3 +1,25 @@
+# This is an augmentation of the Raft-Stereo: Multilevel Reccurent Field Transforms for Stereo Matching
+
+`rast_stereo_model.py` contains two classes:
+1. `RAFTStereoConfig` class: This sets up the RAFT stereo depth estimation model configuration. Parameters such as hidden dimensions, camera intrinsics (focal lengths, baseline, principal points), and GRU layers are defined.
+2. `RaftStereodepthEstimation class`: Initializes the RAFT stereo depth model using the provided config or default parameters from RAFTStereoConfig.
+
+Loads the pre-trained RAFT model from a checkpoint and moves the model to the appropriate device (likely GPU if available).
+
+`predict` method: Converts input stereo images into tensors. Evaluates the RAFT model on the input images to obtain the disparity map, which represents pixel-wise differences between the left and right images.
+
+`depth_map` method: Converts the disparity map into depth values using the stereo vision depth estimation formula, which is derived from the focal length, baseline, and disparity. Calls the `predict` method to get the disparity map, then converts it into a depth map. Generates a 3D point cloud (points_grid) by projecting each pixel into 3D space using the depth values and camera intrinsic.
+
+```
+model = RaftStereodepthEstimation()
+
+left_image = np.asarray(Image.open("datasets/air_research/camera0_1.png"))
+right_image = np.asarray(Image.open("datasets/air_research/camera1_1.png"))
+
+points, disparity = model.predict_depth(left_image, right_image)
+```
+Installation instructions are listed below.
+
 # RAFT-Stereo: Multilevel Recurrent Field Transforms for Stereo Matching
 This repository contains the source code for our paper:
 
