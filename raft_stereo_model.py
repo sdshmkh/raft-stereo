@@ -4,6 +4,7 @@ import torch
 
 from core.raft_stereo import RAFTStereo
 from core.utils.utils import InputPadder
+from core.utils.validation import *
 
 
 import matplotlib.pyplot as plt
@@ -94,27 +95,7 @@ class RaftStereodepthEstimation():
 
 model = RaftStereodepthEstimation()
 
-left_image = np.asarray(Image.open("datasets/air_research/camera0_1.png"))
-right_image = np.asarray(Image.open("datasets/air_research/camera1_1.png"))
 
-points, disparity = model.predict_depth(left_image, right_image)
-
-
-
-# find chess board corners
-ret, corners = cv.findChessboardCorners(left_image, (10, 7), flags=(cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER))
-corners = np.round(corners)
-print(corners)
-cb_image = left_image.copy()
-cv.drawChessboardCorners(cb_image, (7, 10), corners, ret)
-
-corners_copy = corners.reshape(-1, 2).astype(np.int32)
-
-c1 = corners_copy[0]
-c2 = corners_copy[9]
-
-print(points[c1[1], c1[0], :], points[c2[1], c2[0], :])
-
-print(np.linalg.norm(points[c1[1], c1[0], :] - points[c2[1], c2[0], :]))
+point_cloud_selector(model, ValidationOptions("datasets/staircase_validation_images", left_cam=0, right_cam=1))
 
 
