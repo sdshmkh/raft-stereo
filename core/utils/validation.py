@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import *
 
@@ -9,7 +10,7 @@ class ValidationOptions:
         self.left_cam = left_cam
         self.right_cam = right_cam
 
-def point_cloud_selector(opts: ValidationOptions) -> Tuple[np.ndarray, np.ndarray]:
+def point_cloud_selector(model, opts: ValidationOptions) -> Tuple[np.ndarray, np.ndarray]:
     """
     Captures points selected by the users as pixel co-ordinates in stereo pair of images. 
     Projects those points from 2D to 3D using DLT. Then renders these points in a Visualizer.
@@ -58,6 +59,13 @@ def point_cloud_selector(opts: ValidationOptions) -> Tuple[np.ndarray, np.ndarra
 
     cv.destroyAllWindows()
 
+    # generate depth maps for each
+    depth_maps = list()
+    for l_image, r_image in selected_frames:
+        depth_points, d_map = model.predict_depth(l_image, r_image)
+        print(l_image.shape, d_map.shape)
+        depth_maps.append((depth_points, d_map))     
+
     idx = 0
     left_point_dropper = PointDropper(img=selected_frames[idx][0])
     right_point_dropper = PointDropper(img=selected_frames[idx][1])
@@ -88,9 +96,19 @@ def point_cloud_selector(opts: ValidationOptions) -> Tuple[np.ndarray, np.ndarra
             cv.setMouseCallback("Right Point Selector", right_point_dropper.on_mouse)
     
     # get 3D projection
-    left_points = np.array(left_points)
-    right_points = np.array(right_points)
-    print(left_points.shape)
+    validation_points = list()
+    for idx, left_point in enumerate(left_points):
+        curr_left_points = np.array(left_point)
+        print(curr_left_points)
+        depth_point, d_map = depth_maps[idx]
+        plt.imshow(d_map)
+        plt.scatter(curr_left_points[:, 1], curr_left_points[:, 0], marker="x", c="r")
+        plt.show()
+        validation_points.append(depth_point[curr_left_points[:, 0], curr_left_points[:, 1], :])
+        print(validation_points)
+    
+    np.save("validation_points_raft_stereo", np.array(validation_points))
+
     return left_points, right_points
 
 
